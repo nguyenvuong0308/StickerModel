@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
+import com.kunkunnapps.stickermodule.view.getRotationAngle
 import kotlin.math.atan2
 import kotlin.math.hypot
 
@@ -142,9 +143,6 @@ class ImageStickerView @JvmOverloads constructor(
         fillBoundRegion(path = pathRotate, region = regionRotate)
 
         canvas.drawBitmap(mRotateBitmap, matrixRotate, null)
-
-
-
 
     }
 

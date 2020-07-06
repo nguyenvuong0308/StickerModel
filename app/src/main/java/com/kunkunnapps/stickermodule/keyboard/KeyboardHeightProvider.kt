@@ -11,7 +11,6 @@ import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import android.widget.PopupWindow
 import com.kunkunnapps.stickermodule.R
-import timber.log.Timber
 
 
 class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activity) {
@@ -34,7 +33,6 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
     }
 
     fun onResume() {
-        Timber.d("onResume")
         parentView = activity.findViewById(android.R.id.content)
         parentView?.post {
             resizableView.viewTreeObserver.addOnGlobalLayoutListener(getGlobalLayoutListener())
@@ -45,7 +43,6 @@ class KeyboardHeightProvider(private val activity: Activity) : PopupWindow(activ
     }
 
     fun onPause() {
-        Timber.d("onPause")
         resizableView.viewTreeObserver.removeOnGlobalLayoutListener(getGlobalLayoutListener())
         dismiss()
     }

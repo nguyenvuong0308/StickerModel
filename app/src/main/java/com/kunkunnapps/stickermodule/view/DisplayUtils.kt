@@ -1,13 +1,19 @@
-package com.kunkunnapps.stickermodule
+package com.kunkunnapps.stickermodule.view
 
 import android.app.Activity
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.graphics.Matrix.MSCALE_X
 import android.graphics.Matrix.MSKEW_X
+import android.os.Bundle
 import android.util.DisplayMetrics
 import android.util.TypedValue
+import android.widget.FrameLayout
+import androidx.appcompat.app.AppCompatActivity
+import com.kunkunnapps.stickermodule.R
 import java.lang.Math.*
 import kotlin.math.atan2
 import kotlin.math.roundToInt
@@ -68,3 +74,4 @@ fun Matrix.getRotationAngle(): Float {
     val angle = -(atan2(value[MSKEW_X], value[MSCALE_X]) * (180 / PI)).roundToInt().toFloat()
     return angle
 }
+

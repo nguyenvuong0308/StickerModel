@@ -6,13 +6,11 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintSet
 import com.kunkunnapps.stickermodule.keyboard.KeyboardHeightProvider
 import kotlinx.android.synthetic.main.activity_text.*
-import timber.log.Timber
 
 class TextActivity : AppCompatActivity() {
     private var keyboardHeightProvider: KeyboardHeightProvider? = null
     private fun getKeyboardListener() = object : KeyboardHeightProvider.KeyboardListener {
         override fun onHeightChanged(height: Int) {
-            Timber.d("height $height")
             val constraintSet = ConstraintSet()
             constraintSet.clone(container)
             TransitionManager.beginDelayedTransition(container)

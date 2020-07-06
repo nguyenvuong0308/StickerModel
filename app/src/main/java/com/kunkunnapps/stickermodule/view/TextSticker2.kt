@@ -9,11 +9,13 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
-import com.kunkunnapps.stickermodule.*
+import androidx.core.graphics.withMatrix
+import com.kunkunnapps.stickermodule.R
+import com.kunkunnapps.stickermodule.sticker.textsticker.StickerTextInfo
 import kotlin.math.atan2
 import kotlin.math.hypot
 
-class TextSticker @JvmOverloads constructor(
+class TextSticker2 @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
     private val TAG = "TextSticker"
@@ -28,8 +30,8 @@ class TextSticker @JvmOverloads constructor(
 
     /*paint draw text*/
     private var mTextPaint = TextPaint()
-    private var bitmapText: Bitmap? = null
-    private var mText: String = "Something"
+    private var mText: String =
+        "Something Something Something Something \n Something Something Something \n Something Something Something Something"
 
     /*paint draw rect bound view*/
     private val mDotBoundPaint = Paint()
@@ -48,19 +50,22 @@ class TextSticker @JvmOverloads constructor(
 
     /*button rotate*/
     private val mRotateButtonRegion = Region()
-    private val mRotateBitmap = BitmapFactory.decodeResource(resources,
+    private val mRotateBitmap = BitmapFactory.decodeResource(
+        resources,
         R.drawable.ic_rotate
     )
 
     /*button zoom*/
-    private val mZoomBitmap = BitmapFactory.decodeResource(resources,
+    private val mZoomBitmap = BitmapFactory.decodeResource(
+        resources,
         R.drawable.ic_zoom
     )
     private val mZoomButtonRegion = Region()
 
     /*button delete*/
     private val mDeleteButtonRegion = Region()
-    private val mDeleteBitmap = BitmapFactory.decodeResource(resources,
+    private val mDeleteBitmap = BitmapFactory.decodeResource(
+        resources,
         R.drawable.ic_delete
     )
     var deleteCallback: (() -> Unit)? = null
@@ -70,7 +75,8 @@ class TextSticker @JvmOverloads constructor(
 
     /*button scale horizontal*/
     private val mScaleHorizontalButtonRegion = Region()
-    private val mScaleHorizontalBitmap = BitmapFactory.decodeResource(resources,
+    private val mScaleHorizontalBitmap = BitmapFactory.decodeResource(
+        resources,
         R.drawable.ic_zoom
     )
     private lateinit var stickerTextInfo: StickerTextInfo
@@ -84,7 +90,6 @@ class TextSticker @JvmOverloads constructor(
             isAntiAlias = true
             color = Color.BLACK
         }
-
 
         mTextPaint.apply {
             isAntiAlias = true
@@ -353,120 +358,45 @@ class TextSticker @JvmOverloads constructor(
                         )
                     val valuesBase = FloatArray(9)
 
+
                     mMatrixBg.getValues(valuesBase)
-                    bitmapText = textAsBitmap(
-                        width = bitmapBackground.width,
-                        height = bitmapBackground.height,
-                        scaleX = valuesBase[Matrix.MSCALE_X],
-                        scaleY = valuesBase[Matrix.MSCALE_Y],
-                        text = mText,
-                        paint = mTextPaint
-                    )
+                    canvas.save()
+                    mTextPaint.textSize = 50f
+                    mTextPaint.textAlign = Paint.Align.LEFT
 
-                    mTextMatrix.reset()
+                    canvas.withMatrix(matrix = mMatrixBg) {
+                        val canvasw = this
+                        val scaleX = mMatrixBg.getRealScaleX()
+                        val scaleY = mMatrixBg.getRealScaleY()
+                        canvasw.scale(1 / scaleX, 1 / scaleY)
+                        autoSizeTextPaint(mText, width = realWith.toInt(), textPaint = mTextPaint)
+                        val texts = mText.split("\n")
+                        val rectF = Rect()
+                        var totalHeight = 0f
+                        texts.forEachIndexed { index, text ->
+                            mTextPaint.getTextBounds(text, 0, text.length, rectF)
+                            totalHeight += rectF.height()
+                        }
+                        var spaceYFirst = (realHeight - totalHeight) / 2
+                        texts.forEachIndexed { index, text ->
+                            mTextPaint.getTextBounds(text, 0, text.length, rectF)
+                            Log.d(TAG, "onDraw: rect ${rectF.toShortString()}")
+                            val spaceX = (realWith - rectF.width()) / 2
 
-
-                    val valuesText =
-                        MatrixUtils.createValuesMatrix(
-                            angle = Math.toRadians(mMatrixBg.getRotate().toDouble())
-                                .toFloat(),
-                            scaleX = 1f,
-                            scaleY = 1f,
-                            transX = valuesBase[Matrix.MTRANS_X],
-                            transY = valuesBase[Matrix.MTRANS_Y]
-                        )
-                    mTextMatrix.setValues(valuesText)
-
-                    Log.d(
-                        TAG,
-                        "onDraw: rotate ${mMatrixBg.getRotate2()} ${mMatrixBg.getRotate()}  ${mTextMatrix.getRotate()}$mLastDegrees"
-                    )
-
-                    Log.d(
-                        TAG,
-                        "onDraw: mTextMatrix ${mTextMatrix.toShortString()} $realWith $realHeight"
-                    )
-                    Log.d(TAG, "onDraw: mMatrixBg ${mMatrixBg.toShortString()}")
-                    Log.d(
-                        TAG,
-                        "onDraw: 1getRealScaleX ${mTextMatrix.getRealScaleX()} getRealScaleY ${mTextMatrix.getRealScaleY()}"
-                    )
-                    bitmapText?.let {
-                        canvas.drawBitmap(it, mMatrixBg, mTextPaint)
+                            canvasw.drawText(
+                                text,
+                                spaceX,
+                                (rectF.height().toFloat() * index) + spaceYFirst,
+                                mTextPaint
+                            )
+                        }
                     }
-                    if (bitmapText?.isRecycled == false) {
-                        bitmapText?.recycle()
-                        bitmapText = null
-                    }
+
+                    canvas.restore()
                 }
             }
         }
 
-    }
-
-    private fun textAsBitmap(
-        bitmap: Bitmap,
-        text: String,
-        paint: TextPaint
-    ): Bitmap? {
-        val image = Bitmap.createBitmap(bitmap.width, bitmap.height, Bitmap.Config.ARGB_8888)
-        val width = (image.width)
-        val height = (image.height)
-        val canvas = Canvas(image)
-
-        val centerX = width / 2
-        val centerY = height / 2
-
-        val realWidth =
-            width - width * stickerTextInfo.spacePercentLeft - width * stickerTextInfo.spacePercentRight
-        val realHeight =
-            height - height * stickerTextInfo.spacePercentBottom - height * stickerTextInfo.spacePercentTop
-
-        val textLayout = createStaticLayoutAutoResizeText(
-            width = realWidth.toInt(),
-            height = realHeight.toInt(),
-            paint = paint,
-            text = text
-        )
-
-        val x = (centerX - textLayout.width / 2).takeIf { it > 0 } ?: 0
-        val y = (centerY - textLayout.height / 2).takeIf { it > 0 } ?: 0
-        canvas.translate(x.toFloat(), y.toFloat())
-        textLayout.draw(canvas)
-        return image
-    }
-
-    private fun textAsBitmap(
-        width: Int,
-        height: Int,
-        text: String,
-        paint: TextPaint,
-        scaleX: Float,
-        scaleY: Float
-    ): Bitmap? {
-        val image = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(image)
-
-        val centerX = width / 2
-        val centerY = height / 2
-
-        val realWidth =
-            width - width * stickerTextInfo.spacePercentLeft - width * stickerTextInfo.spacePercentRight
-        val realHeight =
-            height - height * stickerTextInfo.spacePercentBottom - height * stickerTextInfo.spacePercentTop
-
-        val textLayout = createStaticLayoutAutoResizeText(
-            width = realWidth.toInt(),
-            height = realHeight.toInt(),
-            paint = paint,
-            text = text
-        )
-
-        val x = (centerX - textLayout.width / 2).takeIf { it > 0 } ?: 0
-        val y = (centerY - textLayout.height / 2).takeIf { it > 0 } ?: 0
-        canvas.translate(x.toFloat(), y.toFloat())
-        textLayout.draw(canvas)
-        return image
     }
 
     private fun drawToolButton(
@@ -508,7 +438,6 @@ class TextSticker @JvmOverloads constructor(
         SCALE_HORIZONTAL,
         NONE
     }
-
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
         if (!mInEdit) return false
@@ -627,7 +556,6 @@ class TextSticker @JvmOverloads constructor(
             TAG,
             "scaleHorizontal2: MSCALE_X ${mValuesMatrix[Matrix.MSCALE_X]} MSCALE_Y ${mValuesMatrix[Matrix.MSCALE_Y]}"
         )
-
     }
 
     /*move content*/
@@ -715,10 +643,3 @@ class RectPointF(
     var pointBottomRight: PointF
 )
 
-class StickerTextInfo(
-    var spacePercentTop: Float,
-    var spacePercentBottom: Float,
-    var spacePercentRight: Float,
-    var spacePercentLeft: Float,
-    var bitmap: Bitmap?
-)

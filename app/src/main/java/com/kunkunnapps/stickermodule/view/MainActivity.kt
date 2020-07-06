@@ -1,12 +1,15 @@
-package com.kunkunnapps.stickermodule
+package com.kunkunnapps.stickermodule.view
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
 import android.os.Bundle
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
-import com.kunkunnapps.stickermodule.view.StickerTextInfo
-import com.kunkunnapps.stickermodule.view.TextSticker
+import com.kunkunnapps.stickermodule.R
+import com.kunkunnapps.stickermodule.sticker.textsticker.StickerTextInfo
+import com.kunkunnapps.stickermodule.sticker.textsticker.TextAlign
+import com.kunkunnapps.stickermodule.sticker.textsticker.TextSticker
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -16,22 +19,26 @@ class MainActivity : AppCompatActivity() {
 
         val option = BitmapFactory.Options()
         option.inPreferredConfig = Bitmap.Config.ARGB_8888
-        val bitmap = BitmapFactory.decodeResource(resources, R.drawable.label, option)
+        val bitmap = BitmapFactory.decodeResource(
+            resources,
+            R.drawable.label,
+            option
+        )
         val info = StickerTextInfo(
+            text = "Something",
+            textColor = Color.BLUE,
+            textColorAlpha = 100,
+            textShadowColor = Color.CYAN,
+            textShadowWeight = 0,
+            textShadowAlpha = 100,
+            textShader = null,
+            textShaderAlpha = 100,
             spacePercentLeft = 0.087f,
             spacePercentTop = 0.23f,
             spacePercentRight = 0.069f,
-            spacePercentBottom = 0.555f,
-
-            bitmap = bitmap
-        )
-
-        val info2 = StickerTextInfo(
-            spacePercentTop = 0f,
-            spacePercentBottom = 0f,
-            spacePercentLeft = 0f,
-            spacePercentRight = 0f,
-            bitmap = null
+            spacePercentBottom = 0.455f,
+            bitmap = bitmap,
+            textAlign = TextAlign.RIGHT
         )
 
         val imageStickerView =
@@ -52,7 +59,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnRemoveBitmap.setOnClickListener {
-            imageStickerView.setStickerInfo(info2)
         }
     }
 }
