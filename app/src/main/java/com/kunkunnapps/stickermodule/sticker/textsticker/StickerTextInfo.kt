@@ -1,8 +1,9 @@
 package com.kunkunnapps.stickermodule.sticker.textsticker
 
 import android.graphics.Bitmap
+import android.graphics.Color
 
-class StickerTextInfo(
+data class StickerTextInfo(
     var text: String,
 
     var textAlign: TextAlign,
@@ -13,13 +14,13 @@ class StickerTextInfo(
     //endregion
 
     //region TextShadow
-    var textShadowColor: Int,
-    var textShadowAlpha: Int,
-    var textShadowWeight: Int,
+    var textShadowColorOrigin: Int,
+    var textShadowAlpha: Float,
+    var textShadowWeight: Float,
     //endregion
 
     //region TextShader
-    var textShader: Bitmap?,
+    var bitmapTextShader: Bitmap?,
     var textShaderAlpha: Int,
     //endregion
 
@@ -30,7 +31,14 @@ class StickerTextInfo(
     var spacePercentLeft: Float,
     var bitmap: Bitmap?
     //endregion
-)
+) {
+    fun getShadowColorMergeAlpha(): Int {
+        val hexColor = String.format("#%06X", 0xFFFFFF and textShadowColorOrigin)
+        val colorAlpha =
+            StickerUtils.addAlpha(hexColor, textShadowAlpha.toDouble() / 100)
+        return Color.parseColor(colorAlpha)
+    }
+}
 
 enum class TextAlign {
     CENTER,

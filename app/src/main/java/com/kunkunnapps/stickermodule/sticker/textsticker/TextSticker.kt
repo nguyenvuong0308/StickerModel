@@ -1,5 +1,6 @@
 package com.kunkunnapps.stickermodule.sticker.textsticker
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.text.TextPaint
@@ -9,17 +10,18 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.graphics.withMatrix
 import com.kunkunnapps.stickermodule.R
+import com.kunkunnapps.stickermodule.sticker.textsticker.StickerUtils.calculateRotation
 import com.kunkunnapps.stickermodule.sticker.textsticker.StickerUtils.fillBoundRegion
 import com.kunkunnapps.stickermodule.sticker.textsticker.StickerUtils.getRectPointFBitmap
-import com.kunkunnapps.stickermodule.sticker.textsticker.StickerUtils.getTextHeight
+import com.kunkunnapps.stickermodule.sticker.textsticker.StickerUtils.getTextHeightLineTallest
 import com.kunkunnapps.stickermodule.sticker.textsticker.StickerUtils.getTotalTextHeight
 import com.kunkunnapps.stickermodule.view.DisplayUtils
 import com.kunkunnapps.stickermodule.view.Utils
 import com.kunkunnapps.stickermodule.view.getRealScaleX
 import com.kunkunnapps.stickermodule.view.getRealScaleY
-import kotlin.math.atan2
-import kotlin.math.hypot
-import kotlin.math.roundToInt
+import java.lang.ref.WeakReference
+import kotlin.math.max
+
 
 class TextSticker @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
@@ -28,7 +30,7 @@ class TextSticker @JvmOverloads constructor(
 
     //region Bitmap background
     private val mMatrixBg = Matrix()
-    private lateinit var mBitmapBackground: Bitmap
+    private var mBitmapBackground: Bitmap? = null
     //endregion
 
     //region Text Info
@@ -45,65 +47,125 @@ class TextSticker @JvmOverloads constructor(
     //endregion
 
     //region Button rotate
-    private val mRegionRotate = Region()
-    private val mRotateBitmap = BitmapFactory.decodeResource(
-        resources,
-        R.drawable.ic_rotate
-    )
+    private var buttonRotate: StickerButtonController? = null
     //endregion
 
     //region Button zoom
-    private val mZoomBitmap = BitmapFactory.decodeResource(
-        resources,
-        R.drawable.ic_zoom
-    )
-    private val mRegionZoom = Region()
+    private var buttonZoom: StickerButtonController? = null
     //endregion
 
     //region Button delete
-    private val mRegionDelete = Region()
-    private val mDeleteBitmap = BitmapFactory.decodeResource(
-        resources,
-        R.drawable.ic_delete
-    )
-    var deleteCallback: (() -> Unit)? = null
+    private var buttonDelete: StickerButtonController? = null
+    var onRemoveSticker: (() -> Unit)? = null
+    //endregion
+
+    //region Button scale vertical
+    private var buttonScaleVertical: StickerButtonController? = null
     //endregion
 
     //region Button scale horizontal
-    private val mRegionScaleHorizontal = Region()
-    private val mScaleHorizontalBitmap = BitmapFactory.decodeResource(
-        resources,
-        R.drawable.ic_zoom
-    )
+    private var buttonScaleHorizontal: StickerButtonController? = null
     //endregion
+
+    private var mWidth = 0
+    private var mHeight = 0
+    private var defaultSpace = 0f
+    private var defaultTextSize = 100f
 
     private var isNeedCreatedBg: Boolean = true
     private var mButtonRadius =
-        DisplayUtils.dpToPx(context, 8f)
-    private var DEFAULT_WIDTH = 250
+        DisplayUtils.dpToPx(context, 10f)
+    private var DEFAULT_WIDTH = DisplayUtils.getWidthDisplay(context) / 2
 
-    private lateinit var stickerTextInfo: StickerTextInfo
+    lateinit var stickerTextInfo: StickerTextInfo
     private var spaceMultiText = 0f
     private val mMatrixValues = FloatArray(9)
     private val rectTmp = Rect()
-    private var isEnableHorizontalScale = true
-    private var defaultTextSize = 30f
-    constructor(context: Context, sticker: StickerTextInfo) : this(context) {
+    private var isEnableHorizontalScale = false
+    private var isEnableVerticalScale = true
+    private var resizeTextHelper= ResizeTextHelper()
+
+    private var textShader: BitmapShader? = null
+    private var buttonsController: ArrayList<StickerButtonController> = ArrayList()
+    private val stickerTouchEvent: StickerTouchEvent = StickerTouchEvent().apply {
+        this.deleteCallback = onRemoveSticker
+    }
+
+    constructor(
+        context: Context,
+        sticker: StickerTextInfo,
+        width: Int,
+        height: Int
+    ) : this(context) {
+        mWidth = width
+        mHeight = height
         mDensity = 3f
         mDensity *= mDensity
         mTextPaint.apply {
             isAntiAlias = true
             color = Color.BLACK
+            textSize = defaultTextSize
         }
 
+        initButtonController()
         mDotBoundPaint.apply {
             color = Color.BLUE
             isAntiAlias = true
             style = Paint.Style.STROKE
-            pathEffect = DashPathEffect(floatArrayOf(5f * mDensity, 5f * mDensity), 0f)
             strokeWidth = mDotWidth
         }
+
         setStickerInfo(sticker)
+    }
+
+    private fun initButtonController() {
+        val sizeButton = DisplayUtils.dpToPx(context, 20f).toInt()
+        buttonZoom = StickerButtonController(
+            size = sizeButton,
+            position = PositionButton.BOTTOM_RIGHT,
+            region = stickerTouchEvent.mRegionZoom,
+            context = WeakReference(context),
+            resIdDrawable = R.drawable.ic_zoom
+        )
+
+        buttonRotate = StickerButtonController(
+            size = sizeButton,
+            position = PositionButton.TOP_RIGHT,
+            region = stickerTouchEvent.mRegionRotate,
+            context = WeakReference(context),
+            resIdDrawable = R.drawable.ic_rotate
+        )
+
+        buttonDelete = StickerButtonController(
+            size = sizeButton,
+            position = PositionButton.TOP_LEFT,
+            region = stickerTouchEvent.mRegionDelete,
+            context = WeakReference(context),
+            resIdDrawable = R.drawable.ic_delete
+        )
+
+        buttonScaleHorizontal = StickerButtonController(
+            size = sizeButton,
+            position = PositionButton.CENTER_RIGHT,
+            region = stickerTouchEvent.mRegionScaleHorizontal,
+            context = WeakReference(context),
+            resIdDrawable = R.drawable.ic_zoom,
+            isDraw = isEnableHorizontalScale
+        )
+
+        buttonScaleVertical = StickerButtonController(
+            size = sizeButton,
+            position = PositionButton.CENTER_RIGHT,
+            region = stickerTouchEvent.mRegionScaleHorizontal,
+            context = WeakReference(context),
+            resIdDrawable = R.drawable.ic_zoom,
+            isDraw = isEnableVerticalScale
+        )
+        buttonsController.add(buttonZoom!!)
+        buttonsController.add(buttonRotate!!)
+        buttonsController.add(buttonDelete!!)
+        buttonsController.add(buttonScaleHorizontal!!)
+        buttonsController.add(buttonScaleVertical!!)
     }
 
     fun setEditEnable(isEnable: Boolean) {
@@ -111,20 +173,30 @@ class TextSticker @JvmOverloads constructor(
     }
 
     fun setText(text: String) {
-        this.stickerTextInfo.text = text
-        if (isNeedCreatedBg) {
-            mBitmapBackground = createBitmapBackgroundByText(text, mTextPaint)
+        reversTranslateMatrix {
+            this.stickerTextInfo.text = text
+            if (isNeedCreatedBg) {
+                mBitmapBackground = createBitmapBackgroundByText(text, mTextPaint)
+            }
         }
         invalidate()
     }
 
-    fun setStickerInfo(stickerInfo: StickerTextInfo) {
+    private fun setStickerInfo(stickerInfo: StickerTextInfo) {
         this.stickerTextInfo = stickerInfo
+        stickerInfo.bitmapTextShader?.let {
+            if (!it.isRecycled) {
+                textShader = BitmapShader(it, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
+                mTextPaint.shader = textShader
+            }
+        }
+
         if (stickerTextInfo.bitmap != null) {
             mBitmapBackground = stickerTextInfo.bitmap!!
             isNeedCreatedBg = false
-            if (mBitmapBackground.width > DEFAULT_WIDTH) {
-                val scale = DEFAULT_WIDTH.toFloat() / mBitmapBackground.width
+            mMatrixBg.reset()
+            if (mBitmapBackground!!.width > DEFAULT_WIDTH) {
+                val scale = DEFAULT_WIDTH.toFloat() / mBitmapBackground!!.width
                 mMatrixBg.postScale(scale, scale)
             }
 
@@ -135,137 +207,110 @@ class TextSticker @JvmOverloads constructor(
         invalidate()
     }
 
+    fun setBackgroundBitmap(bitmapBg: Bitmap?) {
+        reversTranslateMatrix {
+            stickerTextInfo.bitmap = bitmapBg
+            if (bitmapBg != null) {
+                val midPoint = getMidPoint(mBitmapBackground)
+                mBitmapBackground = bitmapBg
+                isNeedCreatedBg = false
+                val scaleX = mMatrixBg.getRealScaleX()
+                val scaleY = mMatrixBg.getRealScaleY()
+                mMatrixBg.postScale(1 / scaleX, 1 / scaleY, midPoint.x, midPoint.y)
+                val scale = DEFAULT_WIDTH.toFloat() / mBitmapBackground!!.width
+                mMatrixBg.postScale(scale, scale, midPoint.x, midPoint.y)
+            } else {
+                isNeedCreatedBg = true
+                mBitmapBackground = createBitmapBackgroundByText(stickerTextInfo.text, mTextPaint)
+            }
+        }
+        invalidate()
+    }
+
+    private fun reversTranslateMatrix(doWork: () -> Unit) {
+        val values = FloatArray(9)
+        mMatrixBg.getValues(values)
+        val oldPointX = values[Matrix.MTRANS_X]
+        val oldPointY = values[Matrix.MTRANS_Y]
+        doWork.invoke()
+        mMatrixBg.getValues(values)
+        val currentPointX = values[Matrix.MTRANS_X]
+        val currentPointY = values[Matrix.MTRANS_Y]
+        mMatrixBg.postTranslate(oldPointX - currentPointX, oldPointY - currentPointY)
+    }
+
     private fun createBitmapBackgroundByText(text: String, textPaint: TextPaint): Bitmap {
         var heightReal = 0
-        autoSizeTextPaint(
-            text = text,
-            width = DEFAULT_WIDTH,
-            height = Int.MAX_VALUE,
-            textPaint = textPaint,
-            spaceMultiText = spaceMultiText
-        ) { realHeight, realWidth ->
-            heightReal = realHeight
+        var widthReal = 0
+
+        getWidthHeightBitmapText(text, textPaint) { width, height ->
+            heightReal = max(height, 1)
+            widthReal = max(width, 1)
         }
         val bitmap =
             Bitmap.createBitmap(
-                DEFAULT_WIDTH,
+                widthReal,
                 heightReal,
                 Bitmap.Config.ARGB_8888
             )
+        val scaleX = mMatrixBg.getRealScaleX()
+        val scaleY = mMatrixBg.getRealScaleY()
+        val midPoint = getMidPoint(mBitmapBackground)
+        mMatrixBg.preScale(1 / scaleX, 1 / scaleY, midPoint.x, midPoint.y)
+        val screenWidth = DEFAULT_WIDTH
+        val scale = screenWidth.toFloat() / widthReal
+        mMatrixBg.preScale(scale, scale, midPoint.x, midPoint.y)
+
         return bitmap
     }
 
-    private fun autoResizeBitmapByText(bitmap: Bitmap, text: String, maxWidth: Int, textPaint: TextPaint) {
-        val isOK = false
-        mMatrixBg.reset()
-        isNeedCreatedBg = false
-        if (bitmap.width > DEFAULT_WIDTH) {
-            val scale = DEFAULT_WIDTH.toFloat() / bitmap.width
-            mMatrixBg.postScale(scale, scale)
-        }
-        textPaint.textSize = defaultTextSize
-        while (!isOK) {
-            autoSizeTextPaint(text, width = DisplayUtils.getWidthDisplay(context), height = (bitmap.height * mMatrixBg.getRealScaleY()).toInt(), spaceMultiText = spaceMultiText, textPaint = textPaint) { realHeight, realWidth ->
-                mMatrixBg.reset()
-                val scaleX = realWidth / bitmap.width
-                val scaleY = realHeight/ bitmap.height
-                if (scaleY > scaleX) {
+    fun moveToCenter() {
+        mBitmapBackground?.let { bitmap ->
+            val rectPointFBoundBitmap = getRectPointFBitmap(bitmap, mMatrixBg)
+            val bgRealWith =
+                Utils.getDistanceTwoPoint(
+                    rectPointFBoundBitmap.pointTopLeft,
+                    rectPointFBoundBitmap.pointTopRight
+                )
+            val bgRealHeight =
+                Utils.getDistanceTwoPoint(
+                    rectPointFBoundBitmap.pointTopRight,
+                    rectPointFBoundBitmap.pointBottomRight
+                )
+            val pointCenterX = (mWidth - bgRealWith) / 2
+            val pointCenterY = (mHeight - bgRealHeight) / 2
+            val values = FloatArray(9)
+            mMatrixBg.getValues(values)
+            val currentPointX = values[Matrix.MTRANS_X]
+            val currentPointY = values[Matrix.MTRANS_Y]
+            mMatrixBg.postTranslate(pointCenterX - currentPointX, pointCenterY - currentPointY)
 
-                }
-            }
+            invalidate()
         }
-
     }
 
-    private fun autoSizeTextPaint(
+    private fun getWidthHeightBitmapText(
         text: String,
-        width: Int,
-        height: Int,
-        spaceMultiText: Float,
         textPaint: TextPaint,
-        onDone: (realHeight: Int, realWidth: Int) -> Unit = { _, _ ->}
+        onDone: (width: Int, height: Int) -> Unit = { _, _ -> }
     ) {
         val longestLineIndex = StickerUtils.getTextLengthLongest(text)
         val rect = Rect()
-        var isOk = false
-        var textSize = textPaint.textSize
         textPaint.getTextBounds(text, longestLineIndex.first, longestLineIndex.second, rect)
-        //region calculate width max
-        if (rect.width() < width) {
-            while (!isOk) {
-                if (rect.width() < width) {
-                    textSize += 0.5f
-                    textPaint.textSize = textSize
-                    textPaint.getTextBounds(
-                        text,
-                        longestLineIndex.first,
-                        longestLineIndex.second,
-                        rect
-                    )
-                } else {
-                    isOk = true
-                }
-            }
-        }
-        //endregion
-
-        //region calculate width fit
-        isOk = false
-        if (rect.width() > width) {
-            while (!isOk) {
-                if (rect.width() > width) {
-                    textSize -= 0.5f
-                    textPaint.textSize = textSize
-                    textPaint.getTextBounds(
-                        text,
-                        longestLineIndex.first,
-                        longestLineIndex.second,
-                        rect
-                    )
-                } else {
-                    isOk = true
-                }
-            }
-        }
-        //endregion
-
-        //region Calculate height fit
-        isOk = false
-        val texts = text.split("\n")
-        var totalHeight = 0f
-
-        while (!isOk) {
-            totalHeight = 0f
-            var index = 0
-            texts.forEach { subText ->
-                val textHeight = getTextHeight(textPaint)
-                totalHeight += textHeight
-                if (index > 0) {
-                    totalHeight += spaceMultiText
-                }
-                index++
-            }
-            isOk = totalHeight <= height
-            if (!isOk) {
-                textSize -= 0.1f
-                textPaint.textSize = textSize
-            }
-        }
-        textPaint.getTextBounds(text, longestLineIndex.first, longestLineIndex.second, rect)
-        val totalWidth = rect.width().toFloat()
-        //endregion
-        onDone.invoke(totalHeight.toInt(), totalWidth.toInt())
+        val width = rect.width()
+        val height = getTotalTextHeight(text, textPaint)
+        onDone.invoke(width, height)
     }
 
-    private fun isDraw() = stickerTextInfo.text.isNotBlank()
+    private fun isDraw() = !(stickerTextInfo.text.isBlank() && stickerTextInfo.bitmap == null)
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (isDraw()) {
+        if (isDraw() && mBitmapBackground != null) {
             val rectPointFBoundBitmap =
-                getRectPointFBitmap(bitmap = mBitmapBackground, matrix = mMatrixBg)
+                getRectPointFBitmap(bitmap = mBitmapBackground!!, matrix = mMatrixBg)
             /*draw background*/
-            canvas.drawBitmap(mBitmapBackground, mMatrixBg, null)
+            canvas.drawBitmap(mBitmapBackground!!, mMatrixBg, null)
 
             canvas.save()
             //region Draw text center background
@@ -292,7 +337,7 @@ class TextSticker @JvmOverloads constructor(
                 this.scale(1f / scaleX, 1f / scaleY)
 
                 var textTotalHeight = 0f
-                autoSizeTextPaint(
+                resizeTextHelper.autoSizeTextPaint(
                     stickerTextInfo.text,
                     width = (bgRealWith - getSpaceStart() - getSpaceEnd()).toInt(),
                     textPaint = mTextPaint,
@@ -306,30 +351,28 @@ class TextSticker @JvmOverloads constructor(
                 var spaceYFirst = spaceTop
 
                 if (textTotalHeight < (bgRealHeight - spaceBottom - spaceTop)) {
-                    spaceYFirst += (bgRealHeight - spaceBottom - spaceTop - textTotalHeight) / 2
+                    /*spaceYFirst += (bgRealHeight - spaceBottom - spaceTop - textTotalHeight) / 2*/
+                    spaceYFirst += spaceTop
                 }
 
                 var offsetY = spaceYFirst
+                val textHeight = getTextHeightLineTallest(stickerTextInfo.text, mTextPaint)
                 texts.forEachIndexed { index, text ->
                     mTextPaint.getTextBounds(text, 0, text.length, rectTmp)
-                    val spaceX: Float
-                    when (stickerTextInfo.textAlign) {
+                    val spaceX: Float = when (stickerTextInfo.textAlign) {
                         TextAlign.CENTER -> {
-                            spaceX = (bgRealWith - rectTmp.width()) / 2
+                            (bgRealWith - rectTmp.width()) / 2
                         }
 
                         TextAlign.RIGHT -> {
-                            spaceX = (bgRealWith - rectTmp.width()) - spaceEnd
+                            (bgRealWith - rectTmp.width()) - spaceEnd
                         }
 
 
                         TextAlign.LEFT -> {
-                            spaceX = spaceStart
+                            spaceStart
                         }
                     }
-
-                    val textHeight = getTextHeight(mTextPaint)
-
 
                     offsetY += (textHeight + spaceMultiText)
 
@@ -345,16 +388,14 @@ class TextSticker @JvmOverloads constructor(
                         mTextPaint
                     )
                 }
+
             }
             //endregion
 
             canvas.restore()
 
             canvas.save()
-            if (mInEdit) {
-                pathBound.reset()
-            }
-
+            pathBound.reset()
             pathBound.apply {
                 moveTo(
                     rectPointFBoundBitmap.pointTopLeft.x,
@@ -374,263 +415,230 @@ class TextSticker @JvmOverloads constructor(
                 )
                 close()
             }
-            canvas.drawPath(pathBound, mDotBoundPaint)
+            if (mInEdit) {
+                canvas.drawPath(pathBound, mDotBoundPaint.apply {
+                    color = Color.BLUE
+                })
+                buttonsController.forEach {
+                    it.drawButton(rectPointFBoundBitmap, getRotate(), canvas)
+                }
+            } else {
+                canvas.drawPath(pathBound, mDotBoundPaint.apply {
+                    color = Color.TRANSPARENT
+                })
+            }
             fillBoundRegion(mContentRegion, pathBound)
             canvas.restore()
-
-            fillBoundRegion(mContentRegion, pathBound)
-            /*draw button delete*/
-            drawToolButton(
-                canvas = canvas,
-                offsetX = rectPointFBoundBitmap.pointTopLeft.x,
-                offsetY = rectPointFBoundBitmap.pointTopLeft.y,
-                radius = mButtonRadius,
-                bitmap = mDeleteBitmap,
-                region = mRegionDelete
-            )
-
-            /*draw button rotate*/
-            drawToolButton(
-                canvas = canvas,
-                offsetX = rectPointFBoundBitmap.pointTopRight.x,
-                offsetY = rectPointFBoundBitmap.pointTopRight.y,
-                radius = mButtonRadius,
-                bitmap = mRotateBitmap,
-                region = mRegionRotate
-            )
-
-            /*draw button zoom*/
-            drawToolButton(
-                canvas = canvas,
-                offsetX = rectPointFBoundBitmap.pointBottomRight.x,
-                offsetY = rectPointFBoundBitmap.pointBottomRight.y,
-                radius = mButtonRadius,
-                bitmap = mZoomBitmap,
-                region = mRegionZoom
-            )
-
-            if (isEnableHorizontalScale) {
-                /*draw button zoom horizontal*/
-                drawToolButton(
-                    canvas = canvas,
-                    offsetX = (rectPointFBoundBitmap.pointBottomRight.x + rectPointFBoundBitmap.pointTopRight.x) / 2,
-                    offsetY = (rectPointFBoundBitmap.pointBottomRight.y + rectPointFBoundBitmap.pointTopRight.y) / 2,
-                    radius = mButtonRadius,
-                    bitmap = mScaleHorizontalBitmap,
-                    region = mRegionScaleHorizontal
-                )
-            }
         }
     }
 
+    private fun getRotate(): Float {
+        val rectPointFBoundBitmap =
+            getRectPointFBitmap(bitmap = mBitmapBackground!!, matrix = mMatrixBg)
+
+        val rotate = calculateRotation(
+            rectPointFBoundBitmap.pointBottomRight.x,
+            rectPointFBoundBitmap.pointBottomRight.y,
+            rectPointFBoundBitmap.pointBottomLeft.x,
+            rectPointFBoundBitmap.pointBottomLeft.y
+        )
+        Log.d(TAG, "getRotate: $rotate")
+        return rotate
+    }
+
     //region calculate text space with background
-    fun getSpaceStart(): Float {
+    private fun getSpaceStart(): Float {
         val bitmap = stickerTextInfo.bitmap
         return if (bitmap == null) {
-            0f
+            defaultSpace * mMatrixBg.getRealScaleX()
         } else {
             stickerTextInfo.spacePercentLeft * bitmap.width * mMatrixBg.getRealScaleX()
         }
     }
 
-    fun getSpaceEnd(): Float {
+    private fun getSpaceEnd(): Float {
         val bitmap = stickerTextInfo.bitmap
         return if (bitmap == null) {
-            0f
+            defaultSpace * mMatrixBg.getRealScaleX()
         } else {
             stickerTextInfo.spacePercentRight * bitmap.width * mMatrixBg.getRealScaleX()
         }
     }
 
-    fun getSpaceTop(): Float {
+    private fun getSpaceTop(): Float {
         val bitmap = stickerTextInfo.bitmap
         return if (bitmap == null) {
-            0f
+            defaultSpace * mMatrixBg.getRealScaleY()
         } else {
             stickerTextInfo.spacePercentTop * bitmap.height * mMatrixBg.getRealScaleY()
         }
     }
     //endregion
 
-    fun getSpaceBottom(): Float {
+    private fun getSpaceBottom(): Float {
         val bitmap = stickerTextInfo.bitmap
         return if (bitmap == null) {
-            0f
+            defaultSpace * mMatrixBg.getRealScaleY()
         } else {
             stickerTextInfo.spacePercentBottom * bitmap.height * mMatrixBg.getRealScaleY()
         }
     }
 
-    private fun drawToolButton(
-        canvas: Canvas?,
-        offsetX: Float,
-        offsetY: Float,
-        radius: Float,
-        region: Region,
-        bitmap: Bitmap
-    ) {
-        Path().apply {
-            addRect(0f, 0f, radius * 2, radius * 2, Path.Direction.CCW)
-            offset(offsetX - radius, offsetY - radius)
-            fillBoundRegion(region, this)
+
+    enum class PositionButton {
+        TOP_LEFT,
+        TOP_RIGHT,
+        BOTTOM_LEFT,
+        BOTTOM_RIGHT,
+        CENTER_RIGHT,
+        CENTER_BOTTOM
+    }
+
+    private fun getMidPoint(bitmapBg: Bitmap?): PointF {
+        return if (bitmapBg == null) {
+            PointF(0f, 0f)
+        } else {
+            val rectFBoundImagePoint = getRectPointFBitmap(bitmapBg, mMatrixBg)
+            val midPointX =
+                (rectFBoundImagePoint.pointTopLeft.x + rectFBoundImagePoint.pointBottomRight.x) / 2
+            val midPointY =
+                (rectFBoundImagePoint.pointTopLeft.y + rectFBoundImagePoint.pointBottomRight.y) / 2
+            PointF(midPointX, midPointY)
         }
-        val rectF = RectF(
-            offsetX - radius,
-            offsetY - radius,
-            offsetX + radius,
-            offsetY + radius
-        )
-        canvas?.drawBitmap(bitmap, null, rectF, null)
     }
 
-    //region Touch Event
-    enum class TOUCH_MODE {
-        ROTATE,
-        ZOOM,
-        MOVE,
-        SCALE_HORIZONTAL,
-        NONE
-    }
-
-    private var mTouchPointX = 0f
-    private var mTouchPointY = 0f
-    private var touchMode =
-        TOUCH_MODE.NONE
-    var mDiagonalLength = 0f
-    var mMidPointX = 0f
-    var mMidPointY = 0f
-    var mLastDegrees = 0f
-    //endregion
-
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (!mInEdit) return false
-        val rectFBoundImagePoint = getRectPointFBitmap(mBitmapBackground, mMatrixBg)
-        mMidPointX =
-            (rectFBoundImagePoint.pointTopLeft.x + rectFBoundImagePoint.pointBottomRight.x) / 2
-        mMidPointY =
-            (rectFBoundImagePoint.pointTopLeft.y + rectFBoundImagePoint.pointBottomRight.y) / 2
+        if (mBitmapBackground == null) return false
 
-        when (event.action) {
-            MotionEvent.ACTION_DOWN -> {
-
-                mTouchPointX = event.rawX
-                mTouchPointY = event.rawY
-                when {
-                    mRegionRotate.contains(event.x.toInt(), event.y.toInt()) -> {
-                        this.bringToFront()
-                        touchMode =
-                            TOUCH_MODE.ROTATE
-
-                        mDiagonalLength = hypot(event.x - mMidPointX, event.y - mMidPointY)
-
-                        mLastDegrees = Math.toDegrees(
-                            atan2(
-                                (event.y - mMidPointY),
-                                (event.x - mMidPointX)
-                            ).toDouble()
-                        ).toFloat()
-                        return true
-                    }
-
-                    mRegionZoom.contains(event.x.toInt(), event.y.toInt()) -> {
-                        touchMode =
-                            TOUCH_MODE.ZOOM
-                        this.bringToFront()
-                        mDiagonalLength = hypot(event.x - mMidPointX, event.y - mMidPointY)
-                        return true
-                    }
-
-                    mContentRegion.contains(event.x.toInt(), event.y.toInt()) -> {
-                        this.bringToFront()
-                        touchMode =
-                            TOUCH_MODE.MOVE
-                        return true
-                    }
-
-                    mRegionScaleHorizontal.contains(event.x.toInt(), event.y.toInt()) -> {
-                        this.bringToFront()
-                        mDiagonalLength = hypot(event.x - mMidPointX, event.y - mMidPointY)
-                        touchMode =
-                            TOUCH_MODE.SCALE_HORIZONTAL
-                        return true
-                    }
-
-                    else -> {
-                        touchMode =
-                            TOUCH_MODE.NONE
-                    }
-
-
-                }
-                return false
-
+        return stickerTouchEvent.onTouch(
+            editable = mInEdit,
+            view = this,
+            event = event,
+            bitmap = mBitmapBackground!!,
+            matrix = mMatrixBg,
+            contentRegion = mContentRegion,
+            onContentTouch = {
+                mInEdit = true
+                invalidate()
             }
+        )
+    }
 
-            MotionEvent.ACTION_MOVE -> {
-                when (touchMode) {
-                    TOUCH_MODE.ROTATE -> {
-                        rotate(event.x, event.y)
-                    }
 
-                    TOUCH_MODE.ZOOM -> {
-                        zoom(event.x, event.y)
-                    }
+    fun setTextColor(textColor: Int) {
+        stickerTextInfo.textColor = textColor
+        mTextPaint.color = textColor
+        invalidate()
+    }
 
-                    TOUCH_MODE.MOVE -> {
-                        moveBitmap(event.rawX, event.rawY)
-                    }
+    fun setTextColorAlpha(textColorAlpha: Int) {
+        stickerTextInfo.textColorAlpha = textColorAlpha
+        mTextPaint.alpha = textColorAlpha
+        invalidate()
+    }
 
-                    TOUCH_MODE.NONE -> {
+    fun setTextShadowColor(shadowColor: Int) {
+        stickerTextInfo.textShadowColorOrigin = shadowColor
 
-                    }
+        mTextPaint.setShadowLayer(
+            stickerTextInfo.textShadowWeight,
+            10f,
+            10f,
+            stickerTextInfo.getShadowColorMergeAlpha()
+        )
+        invalidate()
+    }
 
-                    TOUCH_MODE.SCALE_HORIZONTAL -> {
-                        scaleHorizontal(event.x, event.y)
-                    }
-                }
-                return true
-            }
+    fun setTextShadowWeight(shadowWeight: Float) {
+        stickerTextInfo.textShadowWeight = shadowWeight
+        mTextPaint.setShadowLayer(
+            stickerTextInfo.textShadowWeight,
+            10f,
+            10f,
+            stickerTextInfo.getShadowColorMergeAlpha()
+        )
+        invalidate()
+    }
 
-            MotionEvent.ACTION_UP -> {
-                touchMode =
-                    TOUCH_MODE.NONE
-                return true
-            }
+    fun setTextShadowAlpha(shadowAlpha: Float) {
+        stickerTextInfo.textShadowAlpha = shadowAlpha
+
+        mTextPaint.setShadowLayer(
+            stickerTextInfo.textShadowWeight,
+            5f,
+            10f,
+            stickerTextInfo.getShadowColorMergeAlpha()
+        )
+        invalidate()
+    }
+
+    fun setShader(bitmapShader: Bitmap?) {
+        stickerTextInfo.bitmapTextShader = bitmapShader
+        bitmapShader?.takeIf { !it.isRecycled }?.let {
+            textShader = BitmapShader(it, Shader.TileMode.MIRROR, Shader.TileMode.MIRROR)
+            mTextPaint.shader = textShader
+            invalidate()
+        } ?: run {
+            textShader = null
+            mTextPaint.shader = null
+            invalidate()
         }
-        return false
     }
 
-    private fun rotate(rawX: Float, rawY: Float) {
-        val toDegrees =
-            Math.toDegrees(atan2((rawY - mMidPointY), (rawX - mMidPointX)).toDouble()).toFloat()
-        val degrees = toDegrees - mLastDegrees
-        mMatrixBg.postRotate(degrees, mMidPointX, mMidPointY)
+    fun setShaderAlpha(shaderAlpha: Int) {
+        if (stickerTextInfo.bitmapTextShader != null) {
+            mTextPaint.alpha = shaderAlpha
+            invalidate()
+        }
+    }
 
-        mLastDegrees = toDegrees
+    fun setFont(typeface: Typeface) {
+        mTextPaint.typeface = typeface
         invalidate()
     }
 
-    private fun zoom(rawX: Float, rawY: Float) {
-        val toDiagonalLength = hypot((rawX) - mMidPointX, (rawY) - mMidPointY)
-        val scale = toDiagonalLength / mDiagonalLength
-        mMatrixBg.postScale(scale, scale, mMidPointX, mMidPointY)
-        mDiagonalLength = toDiagonalLength
-        invalidate()
+    /*fun applyBackup() {
+        backupInfo?.let { backupInfo ->
+            stickerTextInfo = backupInfo.stickerInfo
+            if (mBitmapBackground?.isRecycled == false) {
+                mBitmapBackground?.recycle()
+            }
+            mBitmapBackground = backupInfo.bitmapBg
+            mMatrixBg.set(backupInfo.matrix)
+            invalidate()
+        }
+        backupInfo = null
     }
 
-    private fun moveBitmap(rawX: Float, rawY: Float) {
-        mMatrixBg.postTranslate(rawX - mTouchPointX, rawY - mTouchPointY)
-        mTouchPointX = rawX
-        mTouchPointY = rawY
-        invalidate()
+    fun backupInfo() {
+        if (backupInfo?.bitmapBg?.isRecycled == false) {
+            backupInfo?.bitmapBg?.recycle()
+        }
+
+        if (backupInfo?.stickerInfo?.bitmapTextShader?.isRecycled == false) {
+            backupInfo?.stickerInfo?.bitmapTextShader?.recycle()
+        }
+
+        val bitmapBg = mBitmapBackground!!.copy(Bitmap.Config.ARGB_8888, true)
+        backupInfo = BackupInfo(
+            bitmapBg = bitmapBg,
+            matrix = Matrix(mMatrixBg),
+            stickerInfo = stickerTextInfo.copy(
+                bitmap = if (stickerTextInfo.bitmap != null) bitmapBg else null,
+                bitmapTextShader = if (stickerTextInfo.bitmapTextShader != null) stickerTextInfo.bitmapTextShader!!.copy(
+                    Bitmap.Config.ARGB_8888,
+                    true
+                ) else null
+            )
+        )
     }
 
-    private fun scaleHorizontal(rawX: Float, rawY: Float) {
-        val toDiagonalLength = hypot((rawX) - mMidPointX, (rawY) - mMidPointY)
-        val scale = toDiagonalLength / mDiagonalLength
-        mMatrixBg.preScale(scale, 1f, mMidPointX, mMidPointY)
-        mDiagonalLength = toDiagonalLength
-        invalidate()
-    }
+    private var backupInfo: BackupInfo? = null
 
+    class BackupInfo(
+        var stickerInfo: StickerTextInfo,
+        var matrix: Matrix,
+        var bitmapBg: Bitmap
+    )*/
 }

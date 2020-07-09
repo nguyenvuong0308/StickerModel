@@ -45,9 +45,9 @@ object DisplayUtils {
             0
     }
 
-    fun dpToPx(context: Context, dip: Float): Float {
-        val displayMetrics = context.resources.displayMetrics
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip.toFloat(), displayMetrics)
+    fun dpToPx(context: Context?, dip: Float): Float {
+        val displayMetrics = context?.resources?.displayMetrics
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, displayMetrics)
     }
 
     fun pxToDp(context: Context, px: Int): Int {

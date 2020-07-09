@@ -12,6 +12,7 @@ import android.view.MotionEvent
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.appcompat.widget.AppCompatImageView
+import com.kunkunnapps.stickermodule.sticker.textsticker.StickerUtils
 import com.kunkunnapps.stickermodule.view.Utils
 import kotlin.math.atan2
 import kotlin.math.hypot
@@ -146,7 +147,7 @@ class StickerView(context: Context, attrs: AttributeSet?) : AppCompatImageView(c
     }
 
 
-    fun getRectPointFBitmap(bitmap: Bitmap, matrix: Matrix): RectPointF {
+    fun getRectPointFBitmap(bitmap: Bitmap, matrix: Matrix): StickerUtils.RectPointF {
         val arrayOfFloat = FloatArray(9)
         matrix.getValues(arrayOfFloat)
 
@@ -164,7 +165,7 @@ class StickerView(context: Context, attrs: AttributeSet?) : AppCompatImageView(c
 
         val bottomRightY =
             arrayOfFloat[Matrix.MSCALE_Y] * bitmap.height + topLeftY + arrayOfFloat[Matrix.MSKEW_Y] * bitmap.width
-        return RectPointF(
+        return StickerUtils.RectPointF(
             pointTopLeft = PointF(topLeftX, topLeftY),
             pointTopRight = PointF(topRightX, topRightY),
             pointBottomLeft = PointF(bottomLeftX, bottomLeftY),
@@ -448,12 +449,6 @@ class StickerView(context: Context, attrs: AttributeSet?) : AppCompatImageView(c
 
     fun getBitmap(): Bitmap? = mBitmap
 
-    class RectPointF(
-        var pointTopLeft: PointF,
-        var pointTopRight: PointF,
-        var pointBottomLeft: PointF,
-        var pointBottomRight: PointF
-    )
 
     class StickerBgTextInfo(
         var spacePercentTop: Float,

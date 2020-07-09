@@ -3,10 +3,18 @@ package com.kunkunnapps.stickermodule.sticker.textsticker
 import android.graphics.*
 import android.text.TextPaint
 import android.util.Log
-import com.kunkunnapps.stickermodule.view.RectPointF
+import kotlin.math.atan2
+import kotlin.math.roundToLong
 
 object StickerUtils {
     private const val TAG = "StickerUtils"
+
+    class RectPointF(
+        var pointTopLeft: PointF,
+        var pointTopRight: PointF,
+        var pointBottomLeft: PointF,
+        var pointBottomRight: PointF
+    )
 
     /*Lấy 4 điểm bảo quanh bitmap bằng ma trận*/
     fun getRectPointFBitmap(bitmap: Bitmap, matrix: Matrix): RectPointF {
@@ -54,6 +62,12 @@ object StickerUtils {
         return Pair(start, end)
     }
 
+    fun getWidthText(text: String, paint: TextPaint): Int {
+        val rect = Rect()
+        paint.getTextBounds(text, 0, text.length, rect)
+        return rect.width()
+    }
+
     /*Fill region by path*/
     fun fillBoundRegion(region: Region, path: Path) {
         val boundRecF = RectF()
@@ -69,23 +83,64 @@ object StickerUtils {
         )
     }
 
-    fun getTextHeight(paint: TextPaint): Int {
+    /*fun getTextHeight(paint: TextPaint): Int {
         val rect = Rect()
         val text = """qwertyuiop[]asdfghjkl;'\zxcvbnm,./<>?:"|P{}1234567890-=+_)(*&^%'$'#@!QWERTYUIOPASDFGHJKLZXCVBNM"""
         paint.getTextBounds(text, 0, text.length, rect)
         return rect.height()
+    }*/
+
+    fun getTextHeightLineTallest(text: String, paint: TextPaint): Int {
+        val rect = Rect()
+        val texts = text.split("\n")
+        var maxHeight = 0
+        texts.forEach {
+            paint.getTextBounds(it, 0, it.length, rect)
+            val height = rect.height()
+            if (height > maxHeight) {
+                maxHeight = height
+            }
+        }
+        return maxHeight
     }
 
     fun getTotalTextHeight(text: String, paint: TextPaint): Int {
-        var totalHeight = 0
-        val rect = Rect()
-        val standardText = """qwertyuiop[]asdfghjkl;'\zxcvbnm,./<>?:"|P{}1234567890-=+_)(*&^%'$'#@!QWERTYUIOPASDFGHJKLZXCVBNM"""
-        paint.getTextBounds(standardText, 0, standardText.length, rect)
+        val totalHeight: Int
+        val heightOneLine = getTextHeightLineTallest(text, paint)
+
 
         val texts = text.split("\n")
-        repeat(texts.size) {
-            totalHeight += rect.height()
-        }
+        totalHeight = heightOneLine * texts.count()
         return totalHeight
     }
+
+    /**
+     * @param originalColor color, without alpha
+     * @param alpha         from 0.0 to 1.0
+     * @return
+     */
+    fun addAlpha(originalColor: String, alpha: Double): String {
+        var _originalColor = originalColor
+        val alphaFixed = (alpha * 255).roundToLong()
+        var alphaHex = java.lang.Long.toHexString(alphaFixed)
+        if (alphaHex.length == 1) {
+            alphaHex = "0$alphaHex"
+        }
+        _originalColor = _originalColor.replace("#", "#$alphaHex")
+        return _originalColor
+    }
+
+    fun calculateRotation(
+        x1: Float,
+        y1: Float,
+        x2: Float,
+        y2: Float
+    ): Float {
+        val x = x1 - x2.toDouble()
+        val y = y1 - y2.toDouble()
+        val radians = atan2(y, x)
+        return Math.toDegrees(radians).toFloat()
+    }
 }
+
+

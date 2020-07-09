@@ -13,52 +13,98 @@ import com.kunkunnapps.stickermodule.sticker.textsticker.TextSticker
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        const val EXTRA_ID_DRAWABLE = "EXTRA_ID_DRAWABLE"
+        const val EXTRA_SPACE_LEFT = "EXTRA_SPACE_LEFT"
+        const val EXTRA_SPACE_TOP = "EXTRA_SPACE_TOP"
+        const val EXTRA_SPACE_RIGHT = "EXTRA_SPACE_RIGHT"
+        const val EXTRA_SPACE_BOTTOM = "EXTRA_SPACE_BOTTOM"
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val option = BitmapFactory.Options()
         option.inPreferredConfig = Bitmap.Config.ARGB_8888
-        val bitmap = BitmapFactory.decodeResource(
+
+
+        val bitmapShader = BitmapFactory.decodeResource(
             resources,
-            R.drawable.label,
+            R.drawable.bg_shader_test,
             option
         )
         val info = StickerTextInfo(
             text = "Something",
             textColor = Color.BLUE,
             textColorAlpha = 100,
-            textShadowColor = Color.CYAN,
-            textShadowWeight = 0,
-            textShadowAlpha = 100,
-            textShader = null,
+            textShadowColorOrigin = Color.CYAN,
+            textShadowWeight = 0f,
+            textShadowAlpha = 100f,
+            bitmapTextShader = null,
             textShaderAlpha = 100,
-            spacePercentLeft = 0.087f,
-            spacePercentTop = 0.23f,
-            spacePercentRight = 0.069f,
-            spacePercentBottom = 0.455f,
-            bitmap = bitmap,
-            textAlign = TextAlign.RIGHT
+            spacePercentLeft = 0.033333335f,
+            spacePercentTop = 0.2725f,
+            spacePercentRight = 0.15694444f,
+            spacePercentBottom = 0.2675f,
+            bitmap = null,
+            textAlign = TextAlign.CENTER
         )
 
-        val imageStickerView =
-            TextSticker(this, info)
-        imageStickerView.setEditEnable(true)
-        val lp = FrameLayout.LayoutParams(
-            FrameLayout.LayoutParams.MATCH_PARENT,
-            FrameLayout.LayoutParams.MATCH_PARENT
-        )
-        frameMain.addView(imageStickerView, lp)
+        frameMain?.post {
+            val imageStickerView =
+                TextSticker(this, info, frameMain.width, frameMain.height)
+            imageStickerView.setEditEnable(false)
+            val lp = FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+            frameMain.addView(imageStickerView, lp)
 
-        btnChangeText.setOnClickListener {
-            imageStickerView.setText(edt.text.toString())
-        }
+            btnChangeText.setOnClickListener {
+                imageStickerView.setText(edt.text.toString())
+            }
 
-        btnAddBitmap.setOnClickListener {
-            imageStickerView.setStickerInfo(info)
-        }
+            btnAddBitmap.setOnClickListener {
+                imageStickerView.stickerTextInfo.apply {
+                    spacePercentLeft = intent.getFloatExtra(EXTRA_SPACE_LEFT, 0f)
+                    spacePercentTop = intent.getFloatExtra(EXTRA_SPACE_TOP, 0f)
+                    spacePercentRight = intent.getFloatExtra(EXTRA_SPACE_RIGHT, 0f)
+                    spacePercentBottom = intent.getFloatExtra(EXTRA_SPACE_BOTTOM, 0f)
+                }
 
-        btnRemoveBitmap.setOnClickListener {
+                val id = intent.getIntExtra(EXTRA_ID_DRAWABLE, R.drawable.label)
+
+                val bitmap = BitmapFactory.decodeResource(
+                    resources,
+                    id,
+                    option
+                )
+                imageStickerView.setBackgroundBitmap(bitmap)
+            }
+
+            btnRemoveBitmap.setOnClickListener {
+                imageStickerView.stickerTextInfo.apply {
+                    spacePercentLeft = 0f
+                    spacePercentTop = 0f
+                    spacePercentRight = 0f
+                    spacePercentBottom = 0f
+                }
+                imageStickerView.setBackgroundBitmap(null)
+            }
+
+            imageStickerView.setTextColor(Color.BLUE)
+            imageStickerView.setTextColorAlpha(255)
+
+
+            imageStickerView.setShader(bitmapShader)
+            imageStickerView.setShaderAlpha(150)
+
+            btnBackup.setOnClickListener {
+            }
+
+            btnApplyBackup.setOnClickListener {
+            }
         }
     }
 }

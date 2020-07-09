@@ -11,7 +11,9 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.core.graphics.withMatrix
 import com.kunkunnapps.stickermodule.R
+import com.kunkunnapps.stickermodule.StickerView
 import com.kunkunnapps.stickermodule.sticker.textsticker.StickerTextInfo
+import com.kunkunnapps.stickermodule.sticker.textsticker.StickerUtils
 import kotlin.math.atan2
 import kotlin.math.hypot
 
@@ -593,7 +595,7 @@ class TextSticker2 @JvmOverloads constructor(
 
 
     /*Lấy 4 điểm bảo quanh bitmap bằng ma trận*/
-    private fun getRectPointFBitmap(bitmap: Bitmap, matrix: Matrix): RectPointF {
+    private fun getRectPointFBitmap(bitmap: Bitmap, matrix: Matrix): StickerUtils.RectPointF {
         val arrayOfFloat = FloatArray(9)
         matrix.getValues(arrayOfFloat)
 
@@ -611,7 +613,7 @@ class TextSticker2 @JvmOverloads constructor(
 
         val bottomRightY =
             arrayOfFloat[Matrix.MSCALE_Y] * bitmap.height + topLeftY + arrayOfFloat[Matrix.MSKEW_Y] * bitmap.width
-        return RectPointF(
+        return StickerUtils.RectPointF(
             pointTopLeft = PointF(topLeftX, topLeftY),
             pointTopRight = PointF(topRightX, topRightY),
             pointBottomLeft = PointF(bottomLeftX, bottomLeftY),
@@ -636,10 +638,4 @@ class TextSticker2 @JvmOverloads constructor(
     }
 }
 
-class RectPointF(
-    var pointTopLeft: PointF,
-    var pointTopRight: PointF,
-    var pointBottomLeft: PointF,
-    var pointBottomRight: PointF
-)
 

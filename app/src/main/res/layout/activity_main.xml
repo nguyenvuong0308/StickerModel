@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#BAF7FF"
+    android:background="@drawable/image"
     android:orientation="vertical"
     tools:context=".view.MainActivity">
 
@@ -11,7 +12,8 @@
         android:id="@+id/frameMain"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1" />
+        android:layout_weight="1" >
+    </FrameLayout>
 
     <androidx.appcompat.widget.LinearLayoutCompat
         android:layout_width="match_parent"
@@ -23,7 +25,9 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="#ffa"
+            android:maxLines="5"
             android:hint="Enter text"
+            android:text="Something Something Something \n SomethingSomething Something\naadasdasdasdasd\nasdasdasdasdasdasd\nasdasdasdasd\nasdasdasdsd"
             android:padding="10dp" />
 
         <androidx.appcompat.widget.LinearLayoutCompat
@@ -51,6 +55,22 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="AddBitmap" />
+
+
+            <Button
+                android:id="@+id/btnBackup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Backup" />
+
+
+            <Button
+                android:id="@+id/btnApplyBackup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="ApplyBackup" />
 
         </androidx.appcompat.widget.LinearLayoutCompat>
     </androidx.appcompat.widget.LinearLayoutCompat>
