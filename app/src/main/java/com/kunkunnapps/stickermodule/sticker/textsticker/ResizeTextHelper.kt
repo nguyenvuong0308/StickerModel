@@ -3,6 +3,7 @@ package com.kunkunnapps.stickermodule.sticker.textsticker
 import android.graphics.Rect
 import android.text.TextPaint
 import android.util.Log
+import kotlin.math.roundToInt
 
 class ResizeTextHelper {
     private val TAG = "ResizeTextHelper"
@@ -19,62 +20,22 @@ class ResizeTextHelper {
         onDone: (realHeight: Int, realWidth: Int) -> Unit = { _, _ -> }
     ) {
         if (oldWidth != width || oldHeight != height || oldText != text) {
-            val longestLineIndex = StickerUtils.getTextLengthLongest(text)
+            val longestLineIndex = StickerUtils.getTextLengthLongest(text, textPaint)
             oldWidth = width
             oldHeight = height
             oldText = text
             if (text.isBlank()) return
-            val rect = Rect()
-            var isOk = false
+            //region calculate width fit
+            val bounds = Rect()
             var textSize = textPaint.textSize
-            textPaint.getTextBounds(text, longestLineIndex.first, longestLineIndex.second, rect)
-            //region calculate width max
-            val step = 0.1f
-            if (rect.width() < width) {
-                while (!isOk) {
-                    if (rect.width() < width) {
-                        textSize += step
-                        textPaint.textSize = textSize
-                        textPaint.getTextBounds(
-                            text,
-                            longestLineIndex.first,
-                            longestLineIndex.second,
-                            rect
-                        )
-                    } else {
-                        isOk = true
-                    }
-                    Log.d(
-                        TAG,
-                        "autoSizeTextPaint: textSize4 $textSize rect.width() ${rect.width()} width $width "
-                    )
-                }
-                textSize -= step
-                textPaint.textSize = textSize
-            } else if (rect.width() > width) {
-                while (!isOk) {
-                    if (rect.width() > width) {
-                        textSize -= step
-                        textPaint.textSize = textSize
-                        textPaint.getTextBounds(
-                            text,
-                            longestLineIndex.first,
-                            longestLineIndex.second,
-                            rect
-                        )
-                    } else {
-                        isOk = true
-                    }
-                    Log.d(
-                        TAG,
-                        "autoSizeTextPaint: textSize3 $textSize rect.width() ${rect.width()} width $width "
-                    )
-                }
-            }
+            textPaint.getTextBounds(text, longestLineIndex.first, longestLineIndex.second, bounds)
+            textSize = textSize * width / bounds.width()
+            textPaint.textSize = textSize
             //endregion
 
             //region Calculate height fit
-            isOk = false
+            val step = 0.5f
+            var isOk = false
             val texts = text.split("\n")
             var totalHeight = 0f
 
@@ -86,19 +47,16 @@ class ResizeTextHelper {
                     textSize -= step
                     textPaint.textSize = textSize
                 }
-                Log.d(
-                    TAG,
-                    "autoSizeTextPaint: textSize1 $textSize totalHeight ${totalHeight} height $height "
-                )
             }
-            textPaint.getTextBounds(text, longestLineIndex.first, longestLineIndex.second, rect)
-            val totalWidth = rect.width().toFloat()
+
+            textPaint.getTextBounds(text, longestLineIndex.first, longestLineIndex.second, bounds)
+            val totalWidth = bounds.width().toFloat()
             //endregion
             onDone.invoke(totalHeight.toInt(), totalWidth.toInt())
         } else {
             val totalHeight = StickerUtils.getTotalTextHeight(text, textPaint).toFloat()
             val rect = Rect()
-            val longestLineIndex = StickerUtils.getTextLengthLongest(text)
+            val longestLineIndex = StickerUtils.getTextLengthLongest(text, textPaint)
             textPaint.getTextBounds(text, longestLineIndex.first, longestLineIndex.second, rect)
             val totalWidth = rect.width().toFloat()
             onDone.invoke(totalHeight.toInt(), totalWidth.toInt())

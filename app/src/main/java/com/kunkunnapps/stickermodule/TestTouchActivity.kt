@@ -2,6 +2,7 @@ package com.kunkunnapps.stickermodule
 
 import android.app.Activity
 import android.content.Intent
+import android.graphics.Path
 import android.graphics.RectF
 import android.os.Bundle
 import android.util.Log
@@ -14,11 +15,11 @@ class TestTouchActivity : Activity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_touch)
         val spaceAdditional = 15f
-        val rectF1 = RectF(0f, 0f, 720f,  239f)
-        val r2Left = 52f
-        val r2Top = 35 + spaceAdditional
-        val r2Right = r2Left + 619f
-        val r2Bottom = r2Top - spaceAdditional * 2 + 120f
+        val rectF1 = RectF(0f, 0f, 720f,  265f)
+        val r2Left = 37f
+        val r2Top = 51f + spaceAdditional
+        val r2Right = r2Left + 559
+        val r2Bottom = r2Top - spaceAdditional * 2 + 162f +5
         val rectF2 = RectF(r2Left, r2Top - spaceAdditional, r2Right,  r2Bottom)
 
         val left = rectF2.left
@@ -33,7 +34,7 @@ class TestTouchActivity : Activity() {
 
         Log.d(TAG, "onCreate: percentLeft $percentLeft percentTop $percentTop percentBottom $percentBottom percentRight $percentRight")
 
-        val resId =  R.drawable.label1
+        val resId =  R.drawable.label29
         val name: String = resources.getResourceEntryName(resId)
         val json = JSONObject()
         json.put("name", name)

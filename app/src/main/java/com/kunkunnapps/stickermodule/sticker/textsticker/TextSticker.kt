@@ -27,6 +27,7 @@ class TextSticker @JvmOverloads constructor(
     context: Context, attrs: AttributeSet? = null, defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
     private val TAG = "TextSticker"
+    var path: Path? = null
 
     //region Bitmap background
     private val mMatrixBg = Matrix()
@@ -81,9 +82,9 @@ class TextSticker @JvmOverloads constructor(
     private var spaceMultiText = 0f
     private val mMatrixValues = FloatArray(9)
     private val rectTmp = Rect()
-    private var isEnableHorizontalScale = false
+    private var isEnableHorizontalScale = true
     private var isEnableVerticalScale = true
-    private var resizeTextHelper= ResizeTextHelper()
+    private var resizeTextHelper = ResizeTextHelper()
 
     private var textShader: BitmapShader? = null
     private var buttonsController: ArrayList<StickerButtonController> = ArrayList()
@@ -294,7 +295,7 @@ class TextSticker @JvmOverloads constructor(
         textPaint: TextPaint,
         onDone: (width: Int, height: Int) -> Unit = { _, _ -> }
     ) {
-        val longestLineIndex = StickerUtils.getTextLengthLongest(text)
+        val longestLineIndex = StickerUtils.getTextLengthLongest(text, textPaint)
         val rect = Rect()
         textPaint.getTextBounds(text, longestLineIndex.first, longestLineIndex.second, rect)
         val width = rect.width()
@@ -351,8 +352,7 @@ class TextSticker @JvmOverloads constructor(
                 var spaceYFirst = spaceTop
 
                 if (textTotalHeight < (bgRealHeight - spaceBottom - spaceTop)) {
-                    /*spaceYFirst += (bgRealHeight - spaceBottom - spaceTop - textTotalHeight) / 2*/
-                    spaceYFirst += spaceTop
+                    spaceYFirst += (bgRealHeight - spaceBottom - spaceTop - textTotalHeight) / 2
                 }
 
                 var offsetY = spaceYFirst
@@ -361,7 +361,8 @@ class TextSticker @JvmOverloads constructor(
                     mTextPaint.getTextBounds(text, 0, text.length, rectTmp)
                     val spaceX: Float = when (stickerTextInfo.textAlign) {
                         TextAlign.CENTER -> {
-                            (bgRealWith - rectTmp.width()) / 2
+                            val subWidth = bgRealWith - spaceStart - spaceEnd
+                            spaceStart + (subWidth - rectTmp.width()) / 2
                         }
 
                         TextAlign.RIGHT -> {
@@ -378,7 +379,7 @@ class TextSticker @JvmOverloads constructor(
 
                     Log.d(
                         TAG,
-                        "onDraw: spaceYFirst $spaceYFirst mButtonRadius $mButtonRadius realHeight $bgRealWith totalHeight $bgRealHeight offsetY$offsetY height ${rectTmp.height()}"
+                        "onDraw: spaceYFirst $spaceYFirst mButtonRadius $mButtonRadius textHeight $textHeight totalHeight $textTotalHeight  boundHeight ${rectTmp.height()} offsetY $offsetY"
                     )
 
                     this.drawText(
@@ -387,7 +388,23 @@ class TextSticker @JvmOverloads constructor(
                         offsetY,
                         mTextPaint
                     )
+                    rectTmp.top = (rectTmp.top + offsetY).toInt()
+                    rectTmp.bottom = (rectTmp.bottom + offsetY).toInt()
+                    rectTmp.left = rectTmp.left + 150
+                    rectTmp.right = rectTmp.right -150
+                    this.drawRect(rectTmp, mTextPaint)
+                    val measureText= mTextPaint.measureText(text)
+                    Log.d(TAG, "onDraw: measureText $measureText")
                 }
+                Log.d(
+                    TAG,
+                    "onDraw: spaceStart $spaceStart spaceTop $spaceTop spaceEnd $spaceEnd spaceBottom $spaceBottom spaceYFirst $spaceYFirst "
+                )
+
+                Log.d(
+                    TAG,
+                    "onDraw: textTotalHeight $textTotalHeight textHeight $textHeight bgRealHeight $bgRealHeight "
+                )
 
             }
             //endregion

@@ -43,13 +43,17 @@ object StickerUtils {
         )
     }
 
-    fun getTextLengthLongest(text: String): Pair<Int, Int> {
+    fun getTextLengthLongest(text: String, textPaint: TextPaint): Pair<Int, Int> {
         val isBreakLine = text.contains("\n")
         var longestLine = ""
+        val rect = Rect()
+        var maxWidth = 0
         if (isBreakLine) {
             val listLine = text.split("\n")
             listLine.forEachIndexed { index, line ->
-                if (longestLine.length < line.length) {
+                textPaint.getTextBounds(line,0, line.length, rect)
+                if (rect.width() > maxWidth) {
+                    maxWidth = rect.width()
                     longestLine = line
                 }
             }

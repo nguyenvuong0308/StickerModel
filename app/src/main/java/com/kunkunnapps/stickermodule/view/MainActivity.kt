@@ -3,6 +3,7 @@ package com.kunkunnapps.stickermodule.view
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.Path
 import android.os.Bundle
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
@@ -10,7 +11,9 @@ import com.kunkunnapps.stickermodule.R
 import com.kunkunnapps.stickermodule.sticker.textsticker.StickerTextInfo
 import com.kunkunnapps.stickermodule.sticker.textsticker.TextAlign
 import com.kunkunnapps.stickermodule.sticker.textsticker.TextSticker
+import com.kunkunnapps.stickermodule.xmlparse.VectorChildFinder
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_text.*
 
 class MainActivity : AppCompatActivity() {
     companion object {
@@ -24,7 +27,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        val pathConvert = VectorChildFinder(this, R.drawable.ic_shape_1)
+        val vPath = pathConvert.findPathByName("path1")
+        val path = Path()
+        vPath.toPath(path)
         val option = BitmapFactory.Options()
         option.inPreferredConfig = Bitmap.Config.ARGB_8888
 
@@ -54,6 +60,7 @@ class MainActivity : AppCompatActivity() {
         frameMain?.post {
             val imageStickerView =
                 TextSticker(this, info, frameMain.width, frameMain.height)
+            imageStickerView.path = path
             imageStickerView.setEditEnable(false)
             val lp = FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.MATCH_PARENT,
@@ -96,15 +103,14 @@ class MainActivity : AppCompatActivity() {
             imageStickerView.setTextColor(Color.BLUE)
             imageStickerView.setTextColorAlpha(255)
 
-
-            imageStickerView.setShader(bitmapShader)
-            imageStickerView.setShaderAlpha(150)
-
             btnBackup.setOnClickListener {
+                edt.setText( "Something")
             }
 
             btnApplyBackup.setOnClickListener {
+                edt.setText( "aaaaaaaaa")
             }
+
         }
     }
 }
