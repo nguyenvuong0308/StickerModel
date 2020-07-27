@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    viewBox="0 0 512 512">
+    <defs>
+        <style>.cls-1{fill:url(#Degradado_sin_nombre_3);}</style>
+        <linearGradient id="Degradado_sin_nombre_3" x1="264.25" y1="71.99" x2="264.25" y2="426.99"
+            gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#ff1c3d" />
+            <stop offset="1" stop-color="#d41128" />
+        </linearGradient>
+    </defs>
+    <title>description_5</title>
+    <g id="OBJECTS">
+        <path id="_Path_" data-name="&lt;Path&gt;" class="cls-1"
+            d="M407.26,85q-2.5-2.83-5.12-5.59h0c-76.15-80-199.62-80-275.77,0h0q-2.62,2.75-5.12,5.59C52.54,162.74,56,284.27,126.05,360.73l118.58,129.5a26.32,26.32,0,0,0,39.22,0l118.58-129.5C472.45,284.27,476,162.74,407.26,85Z" />
+    </g>
+</svg>

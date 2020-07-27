@@ -3,6 +3,8 @@ package com.kunkunnapps.stickermodule.sticker.textsticker
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
+import android.text.Layout
+import android.text.StaticLayout
 import android.text.TextPaint
 import android.util.AttributeSet
 import android.util.Log
@@ -68,6 +70,8 @@ class TextSticker @JvmOverloads constructor(
     private var buttonScaleHorizontal: StickerButtonController? = null
     //endregion
 
+    private var minTextSize = 10f
+
     private var mWidth = 0
     private var mHeight = 0
     private var defaultSpace = 0f
@@ -85,6 +89,7 @@ class TextSticker @JvmOverloads constructor(
     private var isEnableHorizontalScale = true
     private var isEnableVerticalScale = true
     private var resizeTextHelper = ResizeTextHelper()
+    private val rectMax = Rect()
 
     private var textShader: BitmapShader? = null
     private var buttonsController: ArrayList<StickerButtonController> = ArrayList()
@@ -356,7 +361,8 @@ class TextSticker @JvmOverloads constructor(
                 }
 
                 var offsetY = spaceYFirst
-                val textHeight = getTextHeightLineTallest(stickerTextInfo.text, mTextPaint)
+                val textHeight = getTextHeightLineTallest(stickerTextInfo.text, mTextPaint, rectMax)
+                val isOneLine = texts.count() == 1
                 texts.forEachIndexed { index, text ->
                     mTextPaint.getTextBounds(text, 0, text.length, rectTmp)
                     val spaceX: Float = when (stickerTextInfo.textAlign) {
@@ -375,7 +381,12 @@ class TextSticker @JvmOverloads constructor(
                         }
                     }
 
-                    offsetY += (textHeight + spaceMultiText)
+
+                    if (isOneLine) {
+                        offsetY += spaceMultiText + textHeight - rectMax.bottom
+                    } else {
+                        offsetY += (textHeight + spaceMultiText)
+                    }
 
                     Log.d(
                         TAG,
@@ -388,13 +399,7 @@ class TextSticker @JvmOverloads constructor(
                         offsetY,
                         mTextPaint
                     )
-                    rectTmp.top = (rectTmp.top + offsetY).toInt()
-                    rectTmp.bottom = (rectTmp.bottom + offsetY).toInt()
-                    rectTmp.left = rectTmp.left + 150
-                    rectTmp.right = rectTmp.right -150
-                    this.drawRect(rectTmp, mTextPaint)
-                    val measureText= mTextPaint.measureText(text)
-                    Log.d(TAG, "onDraw: measureText $measureText")
+
                 }
                 Log.d(
                     TAG,
@@ -408,6 +413,7 @@ class TextSticker @JvmOverloads constructor(
 
             }
             //endregion
+
 
             canvas.restore()
 

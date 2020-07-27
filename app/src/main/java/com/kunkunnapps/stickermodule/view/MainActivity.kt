@@ -1,12 +1,10 @@
 package com.kunkunnapps.stickermodule.view
 
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Color
-import android.graphics.Path
+import android.graphics.*
 import android.os.Bundle
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
+import com.caverock.androidsvg.SVG
 import com.kunkunnapps.stickermodule.R
 import com.kunkunnapps.stickermodule.sticker.textsticker.StickerTextInfo
 import com.kunkunnapps.stickermodule.sticker.textsticker.TextAlign
@@ -22,7 +20,10 @@ class MainActivity : AppCompatActivity() {
         const val EXTRA_SPACE_TOP = "EXTRA_SPACE_TOP"
         const val EXTRA_SPACE_RIGHT = "EXTRA_SPACE_RIGHT"
         const val EXTRA_SPACE_BOTTOM = "EXTRA_SPACE_BOTTOM"
+        const val EXTRA_SVG_FROM_ASSET = "EXTRA_SVG_FROM_ASSET"
     }
+
+    private var svgFromAsset : String ? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,7 +35,7 @@ class MainActivity : AppCompatActivity() {
         val option = BitmapFactory.Options()
         option.inPreferredConfig = Bitmap.Config.ARGB_8888
 
-
+        svgFromAsset = intent.getStringExtra(EXTRA_SVG_FROM_ASSET)
         val bitmapShader = BitmapFactory.decodeResource(
             resources,
             R.drawable.bg_shader_test,
@@ -80,14 +81,26 @@ class MainActivity : AppCompatActivity() {
                     spacePercentBottom = intent.getFloatExtra(EXTRA_SPACE_BOTTOM, 0f)
                 }
 
-                val id = intent.getIntExtra(EXTRA_ID_DRAWABLE, R.drawable.label)
+                if (svgFromAsset == null) {
+                    val id = intent.getIntExtra(EXTRA_ID_DRAWABLE, R.drawable.label)
 
-                val bitmap = BitmapFactory.decodeResource(
-                    resources,
-                    id,
-                    option
-                )
-                imageStickerView.setBackgroundBitmap(bitmap)
+                    val bitmap = BitmapFactory.decodeResource(
+                        resources,
+                        id,
+                        option
+                    )
+                    imageStickerView.setBackgroundBitmap(bitmap)
+                } else {
+                    val strSvg = Utils.loadAssetFile(context = this, fileName = svgFromAsset!!)
+                    val svg = SVG.getFromString(strSvg)
+                    val svgPicture = svg.renderToPicture()
+                    val bitmap = Bitmap.createBitmap(svgPicture.width, svgPicture.height, Bitmap.Config.ARGB_8888)
+                    val tmpCanvas = Canvas(bitmap)
+                    svgPicture.draw(tmpCanvas)
+                    imageStickerView.setBackgroundBitmap(bitmap)
+                    imageStickerView.moveToCenter()
+                }
+
             }
 
             btnRemoveBitmap.setOnClickListener {

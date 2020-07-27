@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    viewBox="0 0 512 512">
+    <defs>
+        <style>
+            .cls-1{fill:url(#Degradado_sin_nombre_5);}.cls-2{fill:url(#Degradado_sin_nombre_3);}
+        </style>
+        <linearGradient id="Degradado_sin_nombre_5" x1="112.65" y1="17.21" x2="112.65" y2="198.57"
+            gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#7b0612" />
+            <stop offset="0.99" stop-color="#d9122a" />
+        </linearGradient>
+        <linearGradient id="Degradado_sin_nombre_3" x1="255.51" y1="57.5" x2="255.51" y2="391.03"
+            gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#ff1c3d" />
+            <stop offset="1" stop-color="#d41128" />
+        </linearGradient>
+    </defs>
+    <title>description_18</title>
+    <g id="OBJECTS">
+        <path id="_Rectangle_" data-name="&lt;Rectangle&gt;" class="cls-1"
+            d="M67.62,25h95.63a0,0,0,0,1,0,0V136.26a0,0,0,0,1,0,0H62.06a0,0,0,0,1,0,0V30.61A5.56,5.56,0,0,1,67.62,25Z" />
+        <path id="_Path_" data-name="&lt;Path&gt;" class="cls-2"
+            d="M397.1,25c15,0,27.13,9,27.13,20.14V406.67c0,6.55-4.16,12.71-11.22,16.63L288.4,492.46a36,36,0,0,1-33.08.23l-130-69.39c-7.31-3.9-11.64-10.18-11.64-16.86V110.66l.24-65.16c0-11.13-12.15-20.14-27.13-20.14Z" />
+    </g>
+</svg>

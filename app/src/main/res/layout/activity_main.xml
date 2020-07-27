@@ -29,7 +29,7 @@
             android:background="#ffa"
             android:maxLines="5"
             android:hint="Enter text"
-            android:text="Something Something Something \n SomethingSomething Something\naadasdasdasdasd\nasdasdasdasdasdasd\nasdasdasdasd\nasdasdasdsd"
+            android:text="Something  \n SomethingSomet \naadasdasdasdasd\nasdasdasdasdsd\nasdasdasdasd\nasdasdasdsd"
             android:padding="10dp" />
 
         <androidx.appcompat.widget.LinearLayoutCompat

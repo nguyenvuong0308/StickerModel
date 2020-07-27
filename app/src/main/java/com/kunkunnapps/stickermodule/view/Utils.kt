@@ -1,17 +1,18 @@
 package com.kunkunnapps.stickermodule.view
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Matrix
 import android.graphics.PointF
 import android.os.Environment
 import android.util.Log
-import java.io.File
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.RandomAccessFile
+import java.io.*
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
-import kotlin.math.*
+import kotlin.math.atan2
+import kotlin.math.hypot
+import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 
 object Utils {
@@ -71,6 +72,24 @@ object Utils {
         Log.d("getDistanceTwoPoint", "getDistanceTwoPoint: point1 $point1  point2 $point2 x$x")
         return x
     }
+
+    fun loadAssetFile(context: Context, fileName: String): String? {
+        try {
+            val bufferedReader =
+                BufferedReader(InputStreamReader(context.getAssets().open(fileName)))
+            val out = StringBuilder()
+            var eachline: String? = bufferedReader.readLine()
+            while (eachline != null) {
+                out.append(eachline)
+                eachline = bufferedReader.readLine()
+            }
+            return out.toString()
+        } catch (e: IOException) {
+            Log.e("Load Asset File", e.toString())
+        }
+        return null
+    }
+
 }
 
 fun Matrix.getRotate(): Float {
@@ -143,6 +162,21 @@ fun Matrix.getRealScaleX() : Float {
     return rScale
 }
 
+fun Matrix.getTransX() : Float {
+    // calculate real scale
+    val v = FloatArray(9)
+    getValues(v)
+    return v[Matrix.MTRANS_X]
+}
+
+fun Matrix.getTransY() : Float {
+    // calculate real scale
+    val v = FloatArray(9)
+    getValues(v)
+    return v[Matrix.MTRANS_Y]
+}
+
+
 fun Matrix.getRealScaleY() : Float {
     // calculate real scale
     val v = FloatArray(9)
@@ -166,4 +200,13 @@ fun Matrix.new() : FloatArray {
     newValues[Matrix.MSCALE_Y] = 1f
 
     return newValues
+}
+
+fun <T>ArrayList<T>.previous(_index: Int): T {
+    val index = _index -1
+    return if (index < 0) {
+        last()
+    } else {
+        get(index)
+    }
 }

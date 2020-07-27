@@ -94,7 +94,7 @@ object StickerUtils {
         return rect.height()
     }*/
 
-    fun getTextHeightLineTallest(text: String, paint: TextPaint): Int {
+    fun getTextHeightLineTallest(text: String, paint: TextPaint, rectMax: Rect ?= null): Int {
         val rect = Rect()
         val texts = text.split("\n")
         var maxHeight = 0
@@ -103,6 +103,7 @@ object StickerUtils {
             val height = rect.height()
             if (height > maxHeight) {
                 maxHeight = height
+                rectMax?.set(rect)
             }
         }
         return maxHeight

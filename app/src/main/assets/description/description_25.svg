@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    viewBox="0 0 512 512">
+    <defs>
+        <style>
+            .cls-1{fill:url(#linear-gradient);}.cls-2{fill:url(#linear-gradient-2);}.cls-3{fill:url(#linear-gradient-3);}.cls-4{fill:url(#linear-gradient-4);}.cls-5{fill:#fff;}
+        </style>
+        <linearGradient id="linear-gradient" x1="-92.16" y1="387.57" x2="303.24" y2="191.24"
+            gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#f40" />
+            <stop offset="0.28" stop-color="#ff7100" />
+            <stop offset="0.6" stop-color="#ffa000" />
+            <stop offset="0.86" stop-color="#ffbd00" />
+            <stop offset="1" stop-color="#ffc800" />
+        </linearGradient>
+        <linearGradient id="linear-gradient-2" x1="307.34" y1="378.35" x2="405.62" y2="79.37"
+            xlink:href="#linear-gradient" />
+        <linearGradient id="linear-gradient-3" x1="494.83" y1="476.67" x2="299.09" y2="129.02"
+            xlink:href="#linear-gradient" />
+        <linearGradient id="linear-gradient-4" x1="728.4" y1="605.74" x2="385.58" y2="190.99"
+            xlink:href="#linear-gradient" />
+    </defs>
+    <title>description_25</title>
+    <g id="OBJECTS">
+        <g id="_Group_" data-name="&lt;Group&gt;">
+            <g id="_Group_2" data-name="&lt;Group&gt;">
+                <path id="_Compound_Path_" data-name="&lt;Compound Path&gt;"
+                    d="M401.64,337.58c-2.42,0-4.39-3-4.39-6.78s2-6.78,4.39-6.78,4.39,3,4.39,6.78S404.06,337.58,401.64,337.58Zm0-11.57c-1.71,0-3.1,2.15-3.1,4.79s1.39,4.79,3.1,4.79,3.1-2.15,3.1-4.79S403.35,326,401.64,326Z" />
+            </g>
+            <g id="_Group_3" data-name="&lt;Group&gt;">
+                <path id="_Compound_Path_2" data-name="&lt;Compound Path&gt;"
+                    d="M308.59,173.29c-2.55,0-4.63-3.2-4.63-7.14S306,159,308.59,159s4.63,3.2,4.63,7.14S311.14,173.29,308.59,173.29Zm0-12.29c-1.84,0-3.34,2.31-3.34,5.15s1.5,5.15,3.34,5.15,3.34-2.31,3.34-5.15S310.43,161,308.59,161Z" />
+            </g>
+            <g id="_Group_4" data-name="&lt;Group&gt;">
+                <path id="_Compound_Path_3" data-name="&lt;Compound Path&gt;"
+                    d="M17,313.91a.48.48,0,0,1-.32-.13,1.18,1.18,0,0,1-.32-.86V298.08a1.18,1.18,0,0,1,.32-.86.46.46,0,0,1,.65,0l8.31,7.41a1.32,1.32,0,0,1,0,1.73l-8.31,7.41A.48.48,0,0,1,17,313.91Zm.64-14.1v11.37L24,305.5Z" />
+            </g>
+            <g id="_Group_5" data-name="&lt;Group&gt;">
+                <path id="_Compound_Path_4" data-name="&lt;Compound Path&gt;"
+                    d="M497,208.75a.48.48,0,0,1-.32-.13l-8.31-7.41a1.32,1.32,0,0,1,0-1.73l8.31-7.41a.45.45,0,0,1,.65,0,1.18,1.18,0,0,1,.32.86v14.82a1.18,1.18,0,0,1-.32.86A.48.48,0,0,1,497,208.75Zm-7-8.41L496.4,206V194.66Z" />
+            </g>
+            <polygon id="_Path_" data-name="&lt;Path&gt;" class="cls-1"
+                points="33.7 181.93 36.28 309.48 340.37 315.96 328.6 183.42 33.7 181.93" />
+            <polygon id="_Path_2" data-name="&lt;Path&gt;" class="cls-2"
+                points="328.6 183.42 340.37 315.96 361.83 342.87 359.36 215.81 328.6 183.42" />
+            <polygon id="_Path_3" data-name="&lt;Path&gt;" class="cls-3"
+                points="359.36 215.81 387.1 182.92 382.8 313.47 361.83 342.87 359.36 215.81" />
+            <polygon id="_Path_4" data-name="&lt;Path&gt;" class="cls-4"
+                points="387.1 182.92 382.8 313.47 483.04 315.8 483.47 183.59 387.1 182.92" />
+            <g id="_Group_6" data-name="&lt;Group&gt;">
+                <path id="_Path_5" data-name="&lt;Path&gt;"
+                    d="M291.49,173.45h0L56.92,171c-.36,0-.64-.45-.64-1s.31-1,.65-1l234.56,2.49c.36,0,.64.45.64,1S291.85,173.45,291.49,173.45Z" />
+            </g>
+            <g id="_Group_7" data-name="&lt;Group&gt;">
+                <path id="_Path_6" data-name="&lt;Path&gt;"
+                    d="M356.34,348.35a.52.52,0,0,1-.4-.21l-17.57-21.22-143-1.49c-.36,0-.64-.45-.64-1s.29-1,.64-1h0l143.26,1.5a.52.52,0,0,1,.39.21l17.74,21.42a1.39,1.39,0,0,1,.11,1.4A.6.6,0,0,1,356.34,348.35Z" />
+            </g>
+            <g id="_Group_8" data-name="&lt;Group&gt;">
+                <path id="_Path_7" data-name="&lt;Path&gt;"
+                    d="M295.69,336.89H223.42c-.36,0-.64-.44-.64-1s.29-1,.64-1h72.27c.36,0,.64.44.64,1S296,336.89,295.69,336.89Z" />
+            </g>
+            <g id="_Group_9" data-name="&lt;Group&gt;">
+                <path id="_Path_8" data-name="&lt;Path&gt;"
+                    d="M489.28,325.43H440.56c-.36,0-.64-.44-.64-1s.29-1,.64-1h48.07l-.32-83.7c0-.55.28-1,.64-1s.65.44.65,1l.32,84.71a1.31,1.31,0,0,1-.19.71A.56.56,0,0,1,489.28,325.43Z" />
+            </g>
+            <g id="_Group_10" data-name="&lt;Group&gt;">
+                <path id="_Path_9" data-name="&lt;Path&gt;" class="cls-5"
+                    d="M212.77,304.5h0L54,301c-.36,0-.64-.46-.64-1s.33-1,.65-1l158.74,3.49c.36,0,.64.46.64,1S213.12,304.5,212.77,304.5Z" />
+            </g>
+            <g id="_Group_11" data-name="&lt;Group&gt;">
+                <path id="_Path_10" data-name="&lt;Path&gt;"
+                    d="M28.11,274.85c-.35,0-.63-.43-.64-1l-1.18-60.54c0-.55.27-1,.63-1s.65.42.66,1l1.18,60.54c0,.55-.27,1-.63,1Z" />
+            </g>
+            <g id="_Group_12" data-name="&lt;Group&gt;">
+                <path id="_Path_11" data-name="&lt;Path&gt;"
+                    d="M20.58,268.87c-.35,0-.64-.43-.64-1l-.54-35.63c0-.55.27-1,.63-1s.65.42.66,1l.54,35.63c0,.55-.27,1-.63,1Z" />
+            </g>
+            <g id="_Group_13" data-name="&lt;Group&gt;">
+                <path id="_Path_12" data-name="&lt;Path&gt;"
+                    d="M175,161.49h0l-105.18-1c-.36,0-.64-.45-.64-1s.29-1,.64-1h0l105.18,1c.36,0,.64.45.64,1S175.37,161.49,175,161.49Z" />
+            </g>
+        </g>
+    </g>
+</svg>
